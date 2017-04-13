@@ -1,4 +1,4 @@
-package org.myorg;
+package org.bigramorg;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -39,13 +39,13 @@ public class BigramCount extends Configured implements Tool {
   public int run(String[] args) throws Exception {
     Job job = Job.getInstance(getConf(), "bigramcount");
     for (int i = 0; i < args.length; i += 1) {
-      if ("-skip".equals(args[i])) {
+      if ("-addPath".equals(args[i])) {
         job.getConfiguration().setBoolean("bigramcount.skip.patterns", true);
 	job.getConfiguration().setBoolean("bigramcount.case.sensitive",false);
-        i += 1;
-	LOG.info("added file to distributed cache: " + args[i]);
+        i++;
+	LOG.info("added file to distributed cache accessible to namenodes: " + args[i]);
         job.addCacheFile(new Path(args[i]).toUri());
-        // this demonstrates logging
+      
       }
     }
     job.setJarByClass(this.getClass());
@@ -81,17 +81,17 @@ public class BigramCount extends Configured implements Tool {
       Configuration config = context.getConfiguration();
       this.caseSensitive = config.getBoolean("bigramcount.case.sensitive", false);
       if (config.getBoolean("bigramcount.skip.patterns", false)) {
-        URI[] localPaths = context.getCacheFiles();
-        parseSkipFile(localPaths[0]);
+        	URI[] localPaths = context.getCacheFiles();
+        	parseSkipFile(localPaths[0]);
       }
     }
 
     private void parseSkipFile(URI patternsURI) {
       LOG.info("Added file to the distributed cache: " + patternsURI);
       try {
-        BufferedReader fis = new BufferedReader(new FileReader(new File(patternsURI.getPath()).getName()));
+        BufferedReader finput = new BufferedReader(new FileReader(new File(patternsURI.getPath()).getName()));
         String pattern;
-        while ((pattern = fis.readLine()) != null) {
+        while ((pattern = finput.readLine()) != null) {
           patternsToSkip.add(pattern);
         }
       } catch (IOException ioe) {
@@ -100,9 +100,9 @@ public class BigramCount extends Configured implements Tool {
       }
     }
 
-    public void map(LongWritable offset, Text lineText, Context context)
+    public void map(LongWritable offset, Text lines, Context context)
         throws IOException, InterruptedException {
-      String line = lineText.toString();
+      String line = lines.toString();
       if (!caseSensitive) {
         line = line.toLowerCase();
       }
@@ -113,8 +113,8 @@ public class BigramCount extends Configured implements Tool {
             continue;
         }
 		tempData.add(word);
-            currentWord = new Text(word);
-            context.write(currentWord,one);
+            	currentWord = new Text(word);
+            	context.write(currentWord,one);
         }           
 	  for( int i = 0 ; i < tempData.size() - 1;i++){
 			currentWord = new Text(tempData.get(i)+" "+ tempData.get(i+1));
@@ -130,7 +130,7 @@ public class BigramCount extends Configured implements Tool {
         throws IOException, InterruptedException {
       int sum = 0;
       for (IntWritable count : counts) {
-        sum += count.get();
+        	sum += count.get();
       }
       context.write(word, new IntWritable(sum));
     }
