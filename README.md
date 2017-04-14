@@ -9,8 +9,10 @@ first compile using javac command
 javac -cp path_to_hadoop/hadoop/*:path_to_hadoop/hadoop-mapreduce/* BigramCounter.java -d build Xlint
 
 then create the jar file
+
 jar -cvf BigramCounter.jar -C /build
 
-finally submit the job 
+finally submit the job :
+
 hadoop jar BigramCounter.jar org.myorg.BigramCount /user/cloudera/wordcount/input /user/cloudera/wordcount/output 
 -skip /user/cloudera/wordcount/stop_words.text
